@@ -19,13 +19,13 @@ def fun(t, xy):
 
 
 t_span = (0.0, 10.0)
-y0 = [1.0, 0.0]
 
 df = 60.0
 dt = 1.0 / df
 t = np.arange(t_span[0], t_span[1], dt)
 t = np.r_[t, t_span[1]]
 
+y0 = [1.0, 0.0]
 radius = 0.5
 n = 10000
 xc, yc = y0
@@ -35,9 +35,8 @@ y0s = np.array(
         for theta in np.linspace(0, 2 * np.pi, n)
     ]
 )
-
-rtol = 1e-9
-atol = 1e-12
+rtol = 1e-6   # default: 1e-3
+atol = 1e-12  # default: 1e-6
 
 # Library
 # ------------------------------------------------------------------------------
@@ -60,7 +59,7 @@ def get_data(results, t):
     for i, r in enumerate(results):
         sol_t = r.sol(t)
         data[:, :, i] = sol_t.T
-        return data
+    return data
 
 
 def generate_movie(data, filename="movie.mp4"):
