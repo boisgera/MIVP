@@ -71,7 +71,7 @@ def generate_movie(data, filename="movie.mp4"):
     xm = ym * ratio
     axes.axis([-xm, xm, -ym, ym])
     fig.subplots_adjust(0, 0, 1, 1)
-    # axes.axis('off')
+    axes.axis('off')
 
     polygon = None
 
