@@ -21,7 +21,7 @@ jobs:
           environment-file: environment.yml
 
       - name: Videos Generation
-        run: python main.py
+        run: python main.py && python lk.py
 
       - name: Screenshots
         run: ./screenshot
