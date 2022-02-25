@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Third-Party Libraries
 import numpy as np
 import matplotlib.pyplot as plt
