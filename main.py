@@ -97,4 +97,4 @@ results = solve(
     atol=atol,
 )
 data = get_data(results, t)
-generate_movie(data)
+generate_movie(data, filename="movie.mp4")
