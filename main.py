@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 # Local Library
 import mivp
 
+# ------------------------------------------------------------------------------
 
+# Vector field
 def fun(t, xy):
     x, y = xy
     r = np.sqrt(x * x + y * y)
@@ -14,6 +16,7 @@ def fun(t, xy):
     return [dx, dy]
 
 
+# Time span & frame rate
 t_span = (0.0, 10.0)
 
 df = 60.0
@@ -21,6 +24,7 @@ dt = 1.0 / df
 t = np.arange(t_span[0], t_span[1], dt)
 t = np.r_[t, t_span[1]]
 
+# Initial set boundary
 y0 = [1.0, 0.0]
 radius = 0.5
 n = 10000
@@ -31,8 +35,12 @@ y0s = np.array(
         for theta in np.linspace(0, 2 * np.pi, n)
     ]
 )
+
+# Precision
 rtol = 1e-6  # default: 1e-3
 atol = 1e-12  # default: 1e-6
+
+# ------------------------------------------------------------------------------
 
 results = mivp.solve(
     fun=fun,
