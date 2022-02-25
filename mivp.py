@@ -27,17 +27,28 @@ def get_data(results, t):
     return data
 
 
-def generate_movie(data, filename, fps, fig=None, axes=None):
-    assert fig is None
-    assert axes is None
+def generate_movie(data, filename, fps, axes=None):
+    fig = None
+    if axes:
+        fig = axes.get_figure()
     if not fig:
         fig = plt.figure(figsize=(16, 9))
         axes = fig.subplots()
         axes.axis("equal")
         ratio = 16 / 9
-        ym = np.amax(np.abs(data[:, 1, :])) * 1.2
-        xm = ym * ratio
-        axes.axis([-xm, xm, -ym, ym])
+        x_max = np.amax(np.abs(data[:, 0, :])) * 1.2
+        x_min = np.amin(np.abs(data[:, 0, :])) * 1.2
+        y_max = np.amax(np.abs(data[:, 1, :])) * 1.2
+        y_min = np.amin(np.abs(data[:, 1, :])) * 1.2
+        x_c, y_c = 0.5 * (x_max + x_min), 0.5 * (y_max + y_min)
+        width, height = x_max - x_min, y_max - y_min
+        if height / width >= ratio: # adjust width
+            width = height / ratio
+            x_min, x_max = x_c - 0.5 * width, x_c + 0.5 * width
+        else: # adjust height
+            height = width * ratio
+            y_min, y_max = y_c - 0.5 * height, y_c + 0.5 * height
+        axes.axis([x_min, x_max, y_min, y_max])
         fig.subplots_adjust(0, 0, 1, 1)
         axes.axis("off")
 
