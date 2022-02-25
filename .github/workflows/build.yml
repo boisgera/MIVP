@@ -23,6 +23,9 @@ jobs:
       - name: Videos Generation
         run: python main.py
 
+      - name: Screenshots
+        run: ./screenshot
+
       - name: Deployment Setup
         run: rm .gitignore
 
