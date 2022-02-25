@@ -42,11 +42,11 @@ def generate_movie(data, filename, fps, axes=None):
         y_min = np.amin(data[:, 1, :]) * 1.2
         x_c, y_c = 0.5 * (x_max + x_min), 0.5 * (y_max + y_min)
         width, height = x_max - x_min, y_max - y_min
-        if height / width >= ratio: # adjust width
-            width = height / ratio
+        if width / height <= ratio: # adjust width
+            width = height * ratio
             x_min, x_max = x_c - 0.5 * width, x_c + 0.5 * width
         else: # adjust height
-            height = width * ratio
+            height = width / ratio
             y_min, y_max = y_c - 0.5 * height, y_c + 0.5 * height
         axes.axis([x_min, x_max, y_min, y_max])
         fig.subplots_adjust(0, 0, 1, 1)
