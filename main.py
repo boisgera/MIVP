@@ -1,15 +1,11 @@
-# Python Standard Library
-import time
-
 # Third-Party Libraries
 import numpy as np
-import scipy.integrate as sci
 import matplotlib.pyplot as plt
-import matplotlib.animation as ani
+
+# Local Library
+import mivp
 
 
-# Parameters
-# ------------------------------------------------------------------------------
 def fun(t, xy):
     x, y = xy
     r = np.sqrt(x * x + y * y)
@@ -35,66 +31,15 @@ y0s = np.array(
         for theta in np.linspace(0, 2 * np.pi, n)
     ]
 )
-rtol = 1e-6   # default: 1e-3
-atol = 1e-12  # default: 1e-6
+rtol = 1e-6 # default: 1e-3
+atol = 1e-12 # default: 1e-6
 
-# Library
-# ------------------------------------------------------------------------------
-def solve(**kwargs):
-    kwargs = kwargs.copy()
-    kwargs["dense_output"] = True
-    y0s = kwargs["y0s"]
-    del kwargs["y0s"]
-    results = []
-    for y0 in y0s:
-        kwargs["y0"] = y0
-        result = sci.solve_ivp(**kwargs)
-        results.append(result)
-    return results
-
-
-def get_data(results, t):
-    n = len(results)
-    data = np.zeros((len(t), 2, n))
-    for i, r in enumerate(results):
-        sol_t = r.sol(t)
-        data[:, :, i] = sol_t.T
-    return data
-
-
-def generate_movie(data, filename="movie.mp4"):
-    fig = plt.figure(figsize=(16, 9))
-    axes = fig.subplots()
-    axes.axis("equal")
-    ratio = 16 / 9
-    ym = 1.2
-    xm = ym * ratio
-    axes.axis([-xm, xm, -ym, ym])
-    fig.subplots_adjust(0, 0, 1, 1)
-    axes.axis('off')
-
-    polygon = None
-
-    def update(i):
-        nonlocal polygon
-        x, y = data[i]
-        if polygon:
-            polygon.remove()
-        polygon = plt.fill(x, y, color="k")[0]
-
-    writer = ani.FFMpegWriter(fps=df)
-    animation = ani.FuncAnimation(fig, func=update, frames=len(data))
-    animation.save(filename, writer=writer, dpi=100)
-
-
-# Main Entry Point
-# ------------------------------------------------------------------------------
-results = solve(
+results = mivp.solve(
     fun=fun,
     t_span=t_span,
     y0s=y0s,
     rtol=rtol,
     atol=atol,
 )
-data = get_data(results, t)
-generate_movie(data, filename="movie.mp4")
+data = mivp.get_data(results, t)
+mivp.generate_movie(data, filename="movie.mp4", fps=df)
