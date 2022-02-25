@@ -36,10 +36,10 @@ def generate_movie(data, filename, fps, axes=None):
         axes = fig.subplots()
         axes.axis("equal")
         ratio = 16 / 9
-        x_max = np.amax(np.abs(data[:, 0, :])) * 1.2
-        x_min = np.amin(np.abs(data[:, 0, :])) * 1.2
-        y_max = np.amax(np.abs(data[:, 1, :])) * 1.2
-        y_min = np.amin(np.abs(data[:, 1, :])) * 1.2
+        x_max = np.amax(data[:, 0, :]) * 1.2
+        x_min = np.amin(data[:, 0, :]) * 1.2
+        y_max = np.amax(data[:, 1, :]) * 1.2
+        y_min = np.amin(data[:, 1, :]) * 1.2
         x_c, y_c = 0.5 * (x_max + x_min), 0.5 * (y_max + y_min)
         width, height = x_max - x_min, y_max - y_min
         if height / width >= ratio: # adjust width
