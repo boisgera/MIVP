@@ -36,10 +36,16 @@ y0s = np.array(
     ]
 )
 
+rtol = 1e-9
+atol = 1e-12
 
+# Library
+# ------------------------------------------------------------------------------
 def solve(**kwargs):
     kwargs = kwargs.copy()
-    kwargs["dense_outputs"] = True
+    kwargs["dense_output"] = True
+    y0s = kwargs["y0s"]
+    del kwargs["y0s"]
     results = []
     for y0 in y0s:
         kwargs["y0"] = y0
@@ -80,12 +86,15 @@ def generate_movie(data, filename="movie.mp4"):
     animation = ani.FuncAnimation(fig, func=update, frames=len(data))
     animation.save("filename", writer=writer, dpi=100)
 
+# Main Entry Point
+# ------------------------------------------------------------------------------
+
 results = solve(
     fun=fun, 
     t_span=t_span, 
     y0s=y0s, 
-    rtol=1e-9, 
-    atol=0,
+    rtol=rtol, 
+    atol=atol,
 )
 data = get_data(results, t)
 generate_movie(data)
