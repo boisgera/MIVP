@@ -31,8 +31,8 @@ y0s = np.array(
         for theta in np.linspace(0, 2 * np.pi, n)
     ]
 )
-rtol = 1e-6 # default: 1e-3
-atol = 1e-12 # default: 1e-6
+rtol = 1e-6  # default: 1e-3
+atol = 1e-12  # default: 1e-6
 
 results = mivp.solve(
     fun=fun,

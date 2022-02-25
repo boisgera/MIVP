@@ -35,7 +35,7 @@ def generate_movie(data, filename, fps, fig=None, axes=None):
         axes = fig.subplots()
         axes.axis("equal")
         ratio = 16 / 9
-        ym = np.amax(np.abs(data[:, 1, :])) * 1.2 
+        ym = np.amax(np.abs(data[:, 1, :])) * 1.2
         xm = ym * ratio
         axes.axis([-xm, xm, -ym, ym])
         fig.subplots_adjust(0, 0, 1, 1)
