@@ -53,6 +53,7 @@ def solve(**kwargs):
         results.append(result)
     return results
 
+
 def get_data(results, t):
     n = len(results)
     data = np.zeros((len(t), 2, n))
@@ -61,6 +62,7 @@ def get_data(results, t):
         data[:, :, i] = sol_t.T
         return data
 
+
 def generate_movie(data, filename="movie.mp4"):
     fig = plt.figure(figsize=(16, 9))
     axes = fig.subplots()
@@ -68,7 +70,6 @@ def generate_movie(data, filename="movie.mp4"):
     ratio = 16 / 9
     ym = 1.2
     xm = ym * ratio
-    print([-xm, xm, -ym, ym])
     axes.axis([-xm, xm, -ym, ym])
     fig.subplots_adjust(0, 0, 1, 1)
     # axes.axis('off')
@@ -86,14 +87,14 @@ def generate_movie(data, filename="movie.mp4"):
     animation = ani.FuncAnimation(fig, func=update, frames=len(data))
     animation.save(filename, writer=writer, dpi=100)
 
+
 # Main Entry Point
 # ------------------------------------------------------------------------------
-
 results = solve(
-    fun=fun, 
-    t_span=t_span, 
-    y0s=y0s, 
-    rtol=rtol, 
+    fun=fun,
+    t_span=t_span,
+    y0s=y0s,
+    rtol=rtol,
     atol=atol,
 )
 data = get_data(results, t)
