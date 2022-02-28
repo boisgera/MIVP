@@ -19,7 +19,7 @@ def fun(t, xy):
 
 
 # Time span & frame rate
-t_span = (0.0, 10.0)
+t_span = (0.0, 12.0)
 
 df = 60.0
 dt = 1.0 / df
