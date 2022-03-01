@@ -1,5 +1,6 @@
 # ODE flow & sets of initial values
 
+<!--
 <div style="display:flex;gap:1em;flex: 0 1 auto;">
 <div style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;">
 <a href="https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4">
@@ -23,8 +24,8 @@ src="https://github.com/boisgera/MIVP/raw/gh-pages/images/vinograd.png">
 </a>
 </div>
 </div>
+-->
 
-<!--
 <a href="https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4">
 <img
 src="https://github.com/boisgera/MIVP/raw/gh-pages/images/movie.png"
@@ -45,7 +46,6 @@ src="https://github.com/boisgera/MIVP/raw/gh-pages/images/vinograd.png"
 style="width:100%">
 </img>
 </a>
--->
 
 ```python
 # Third-Party Libraries
