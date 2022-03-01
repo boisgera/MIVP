@@ -50,6 +50,7 @@ results = mivp.solve(
     y0s=y0s,
     rtol=rtol,
     atol=atol,
+    method="LSODA",
 )
 data = mivp.get_data(results, t)
 mivp.generate_movie(data, filename="vinograd.mp4", fps=df)

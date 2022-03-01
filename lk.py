@@ -10,10 +10,13 @@ import mivp
 # ------------------------------------------------------------------------------
 
 # Vector field
-alpha = 2 / 3; beta = 4 / 3; delta = gamma = 1.0
+alpha = 2 / 3
+beta = 4 / 3
+delta = gamma = 1.0
+
 
 def fun(t, xy):
-    x, y = xy 
+    x, y = xy
     u = alpha * x - beta * x * y
     v = delta * x * y - gamma * y
     return np.array([u, v])
@@ -51,6 +54,7 @@ results = mivp.solve(
     y0s=y0s,
     rtol=rtol,
     atol=atol,
+    method="LSODA",
 )
 data = mivp.get_data(results, t)
 mivp.generate_movie(data, filename="lk.mp4", fps=df)
