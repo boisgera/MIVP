@@ -35,12 +35,22 @@ y0 = [1.0, 0.5]
 radius = 0.25
 n = 100
 xc, yc = y0
-y0s = np.array(
-    [
-        [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
-        for theta in np.linspace(0, 2 * np.pi, n)
-    ]
-)
+# y0s = np.array(
+#     [
+#         [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
+#         for theta in np.linspace(0, 2 * np.pi, n)
+#     ]
+# )
+
+
+def boundary(t):  # we assume that t is a 1-dim array
+    return np.array(
+        [
+            [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
+            for theta in 2 * np.pi * t
+        ]
+    )
+
 
 # Precision
 rtol = 1e-9  # default: 1e-3
@@ -48,13 +58,25 @@ atol = 1e-15  # default: 1e-6
 
 # ------------------------------------------------------------------------------
 
-results = mivp.solve(
+# results = mivp.solve(
+#     fun=fun,
+#     t_span=t_span,
+#     y0s=y0s,
+#     rtol=rtol,
+#     atol=atol,
+#     method="LSODA",
+# )
+# data = mivp.get_data(results, t)
+
+data = mivp.solve_alt(
     fun=fun,
-    t_span=t_span,
-    y0s=y0s,
+    t_eval=t,
+    boundary=boundary,
+    boundary_rtol=0.0,
+    boundary_atol=0.05,
     rtol=rtol,
     atol=atol,
     method="LSODA",
 )
-data = mivp.get_data(results, t)
+
 mivp.generate_movie(data, filename="lk.mp4", fps=df)
