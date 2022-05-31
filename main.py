@@ -64,7 +64,7 @@ atol = 1e-12  # default: 1e-6
 # )
 # data = mivp.get_data(results, t)
 
-data = mivp.solve_alt(
+data = mivp.solve(
     fun=fun,
     t_eval=t,
     boundary=boundary,
@@ -74,4 +74,4 @@ data = mivp.solve_alt(
     atol=atol,
     method="LSODA",
 )
-mivp.generate_movie(data, filename="movie.mp4", fps=df)
+mivp.generate_movie(data, filename="main.mp4", fps=df)

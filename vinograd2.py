@@ -36,13 +36,20 @@ n = 10
 xc, yc = y0
 
 
-def boundary(t):  # we assume that t is a 1-dim array
-    return np.array(
-        [
-            [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
-            for theta in 2 * np.pi * t
-        ]
-    )
+def vectorize(fun):
+    return np.vectorize(fun, signature="()->(n)")
+
+
+@vectorize
+def boundary(s):
+    if 0 <= s < 0.25:
+        return np.array([-0.5 + 4 * s, 0.5])
+    elif 0.25 <= s < 0.5:
+        return np.array([0.5, 0.5 - 4 * (s - 0.25)])
+    elif 0.5 <= s < 0.75:
+        return np.array([0.5 - 4 * (s - 0.5), -0.5])
+    else:
+        return np.array([-0.5, -0.5 + 4 * (s - 0.75)])
 
 
 # Precision
@@ -64,4 +71,4 @@ data = mivp.solve(
 )
 print(time.time() - t_)
 
-mivp.generate_movie(data, filename="vinograd.mp4", fps=df)
+mivp.generate_movie(data, filename="vinograd2.mp4", fps=df)
