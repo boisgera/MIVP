@@ -68,12 +68,12 @@ atol = 1e-15  # default: 1e-6
 # )
 # data = mivp.get_data(results, t)
 
-data = mivp.solve_alt(
+data = mivp.solve(
     fun=fun,
     t_eval=t,
     boundary=boundary,
     boundary_rtol=0.0,
-    boundary_atol=0.05,
+    boundary_atol=0.01,
     rtol=rtol,
     atol=atol,
     method="LSODA",

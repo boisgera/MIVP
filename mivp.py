@@ -46,9 +46,21 @@ import tqdm
 #       So that the user doesn't have the messy reordering of the raw data
 #       todo?
 
-# TODO: diagnoses (real-time?) with "heatmap"?
+# TODO: diagnoses (real-time?) with "heatmap"? Or max curves ; also plot
+#       (final) density distributions, etc. Read about von mises (circular)
+#       kernel density estimation a bit (or first plot very rough density
+#       approx, assuming some non-random spacing).
+
+# TODO: try multi-processing for speed? (on a decoupled example first?)
 
 # TODO: better data / plot decoupling. Don't presume too much of the usage.
+#
+# TODO: custom "plots" (/viz) : movie, movement with shadow of the past,
+#       snapshot with shadow, "vignettes" (multiple snapshots), 3D graph
+#       (time along z), etc.
+
+MARGIN = 5 # (percentage)
+N = 200
 
 def solve(**kwargs):
     kwargs = kwargs.copy()
@@ -58,30 +70,69 @@ def solve(**kwargs):
 
     boundary_atol = kwargs.get("boundary_atol", 0.01)
     del kwargs["boundary_atol"]
-    boundary_rtol = kwargs.get("boundary_rtol", 0.1)
+    boundary_rtol = kwargs.get("boundary_rtol", 0.0)
     del kwargs["boundary_rtol"]
     t_eval = kwargs["t_eval"]
     kwargs["t_span"] = (t_eval[0], t_eval[-1])
 
-    data = [np.zeros((2, len(t_eval)), dtype=np.float64) for _ in range(4)]
-
-    s = list(np.linspace(0.0, 1.0, 4))
+    first = None
+    target_density = None
+    # shape : num_points x dim_state_space x number_of_times  
+    data = [np.zeros((2, len(t_eval)), dtype=np.float64) for _ in range(N)]
+    s = list(np.linspace(0.0, 1.0, N, endpoint=True))
     y0s = boundary(np.array(s))
     for i, y0 in enumerate(y0s):
         kwargs["y0"] = y0
         result = sci.solve_ivp(**kwargs)
         data[i] = result.y
 
+    _, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    ax1.set_xlim(0.0, 1.0)
+    ax2.set_xlim(0.0, 1.0)
+
+    c = 0
     while True:
         data_array = np.array(data)
-        x, y = data_array[:, 0], data_array[:, 1]
-        d = np.sqrt(x * x + y * y)[:, :-1]
-        error = boundary_atol + boundary_rtol * d
-        # compute max and index that corresponds ?
-        dxdy = np.diff(data, axis=0)
+        x, y = data_array[:, 0], data_array[:, 1] # shape: num_points x num_times
+        v = np.sqrt(x * x + y * y) 
+        d = 0.5 * (v[:-1] + v[1:]) 
+        error = boundary_atol + boundary_rtol * d # shape: (num_points - 1) x num_times
+        dxdy = np.diff(data, axis=0) # shape : (num_points -1) x dim_state_space x number_of_times
         dx, dy = dxdy[:, 0], dxdy[:, 1]
-        dd = np.sqrt(dx * dx + dy * dy)
-        if np.all(np.amax(dd) <= error):
+        dd = np.sqrt(dx * dx + dy * dy) # shape : (num_points -1) x number_of_times
+
+        #yy = np.amax(dd, axis=1) # num_points - 1
+        r = 0.5 * (np.array(s[:-1]) + np.array(s[1:]))
+        options = {"color": "k", "alpha": 0.01} if c!=0 else {}
+        ax1.plot(r, np.amax(dd / error, axis=1), label=str(c), **options)
+        if c == 0:
+            #first = r.copy(), yy.copy()
+            density_init = 1 / np.diff(s)
+            r_init = r.copy()
+            density_increase = np.amax(dd / error, axis=1) 
+            target_density = density_increase * density_init
+
+            # Upsampling (power of two)
+            power = np.ceil(np.log2(density_increase * (1.0 + MARGIN/100.0))).astype(np.int64)
+            power = np.maximum(0, power)
+            density_increase_rounded_up = (2**power).astype(np.int64)
+            s_upsampled = []
+            density_increase_upsampled = []
+            density_upsampled = []
+            for i, s_ in enumerate(s[:-1]):
+                s_next = s[i+1]
+                s_upsampled.extend(np.linspace(s_, s_next, density_increase_rounded_up[i]))
+                z = density_increase_rounded_up[i]
+                density_increase_upsampled.extend([z] * z)
+                density_upsampled.extend([density_init[i]] * z)
+            s_upsampled.append(s_)
+            s_upsampled = np.array(s_upsampled)
+            density_upsampled = np.array(density_upsampled)
+            density_increase_upsampled = np.array(density_increase_upsampled)
+
+        c+=1
+
+        if np.all(dd <= error):
             break
         index_flat = np.argmax(dd)
         i, j = divmod(index_flat, np.shape(dd)[1])
@@ -98,10 +149,28 @@ def solve(**kwargs):
 
     reshaped_data = np.einsum("kji", data)
     # reshaped_data is a (time_index, dim_state_space, num_points)-shaped array
+
+    #plt.legend()
+
+    s = np.array(s)
+    density = 1.0 / np.diff(s)
+    r = 0.5 * (s[:-1] + s[1:])
+    ax2.semilogy(r, density, label="required")
+    ax2.semilogy(r_init, target_density, "+")
+
+    r_upsampled = 0.5* (s_upsampled[1:] + s_upsampled[:-1])
+    ax2.semilogy(r_upsampled, density_upsampled * density_increase_upsampled, label="predicted")
+
+    #ax2.semilogy(first[0], first[1]/max(first[1])*max(density), "--")
+    #ax2.set_ylim(0.0, 1.1 * max(density))
+    ax2.legend()
+    plt.show()
+
     return reshaped_data
 
 
 def generate_movie(data, filename, fps, dpi=300, axes=None, hook=None):
+    return # tmp
     fig = None
     if axes:
         fig = axes.get_figure()
