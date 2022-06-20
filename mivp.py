@@ -63,26 +63,28 @@ import tqdm
 #       (time along z), etc.
 
 MARGIN = 5 # (percentage)
-N = 200
+N = 50    # Initial number of boundary points
 
 def solve(**kwargs):
+    # Arguments Handling
     kwargs = kwargs.copy()
-
     boundary = kwargs["boundary"]
     del kwargs["boundary"]
-
     boundary_atol = kwargs.get("boundary_atol", 0.01)
     del kwargs["boundary_atol"]
     boundary_rtol = kwargs.get("boundary_rtol", 0.0)
     del kwargs["boundary_rtol"]
-    t_eval = kwargs["t_eval"]
-    kwargs["t_span"] = (t_eval[0], t_eval[-1])
+    try:
+        t_eval = kwargs["t_eval"]
+    except KeyError:
+        raise TypeError("t_eval argument is mandatory")
+    kwargs["t_span"] = kwargs.get("t_span") or (t_eval[0], t_eval[-1])
 
-    first = None
-    target_density = None
-    # shape : num_points x dim_state_space x number_of_times  
-    data = [np.zeros((2, len(t_eval)), dtype=np.float64) for _ in range(N)]
+    # Compute the trajectories for the initial boundary sampling
+    target_density = None  
     s = list(np.linspace(0.0, 1.0, N, endpoint=True))
+    data = [np.zeros((2, len(t_eval)), dtype=np.float64) for _ in range(N)]
+    assert np.shape(data) == (len(s), 2, len(t_eval))
     y0s = boundary(np.array(s))
     for i, y0 in enumerate(y0s):
         kwargs["y0"] = y0
@@ -91,28 +93,33 @@ def solve(**kwargs):
 
     _, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
     ax1.set_xlim(0.0, 1.0)
+    ax1.set_title("Spatial distance between points: effective / max admissible")
     ax2.set_xlim(0.0, 1.0)
+    ax2.set_title("Final points density")
+
 
     c = 0
     while True:
         data_array = np.array(data)
-        x, y = data_array[:, 0], data_array[:, 1] # shape: num_points x num_times
+        x, y = data_array[:, 0], data_array[:, 1]
+        assert np.shape(x) == (len(s), len(t_eval))
+        assert np.shape(y) == (len(s), len(t_eval))
         v = np.sqrt(x * x + y * y) 
         d = 0.5 * (v[:-1] + v[1:]) 
-        error = boundary_atol + boundary_rtol * d # shape: (num_points - 1) x num_times
-        dxdy = np.diff(data, axis=0) # shape : (num_points -1) x dim_state_space x number_of_times
+        threshold = boundary_atol + boundary_rtol * d 
+        assert np.shape(threshold) == (len(s)-1, len(t_eval))
+        dxdy = np.diff(data, axis=0)
+        assert np.shape(dxdy) == (len(s)-1, 2, len(t_eval))
         dx, dy = dxdy[:, 0], dxdy[:, 1]
-        dd = np.sqrt(dx * dx + dy * dy) # shape : (num_points -1) x number_of_times
-
-        #yy = np.amax(dd, axis=1) # num_points - 1
+        dd = np.sqrt(dx * dx + dy * dy)
+        assert np.shape(dd) == (len(s)-1, len(t_eval))
         r = 0.5 * (np.array(s[:-1]) + np.array(s[1:]))
         options = {"color": "k", "alpha": 0.01} if c!=0 else {}
-        ax1.plot(r, np.amax(dd / error, axis=1), label=str(c), **options)
+        ax1.plot(r, np.amax(dd / threshold, axis=1), label=str(c), **options)
         if c == 0:
-            #first = r.copy(), yy.copy()
             density_init = 1 / np.diff(s)
             r_init = r.copy()
-            density_increase = np.amax(dd / error, axis=1) 
+            density_increase = np.amax(dd / threshold, axis=1) 
             target_density = density_increase * density_init
 
             # Upsampling (power of two)
@@ -135,9 +142,9 @@ def solve(**kwargs):
 
         c+=1
 
-        if np.all(dd <= error):
+        if np.all(dd <= threshold):
             break
-        index_flat = np.argmax(dd)
+        index_flat = np.argmax(dd / threshold)
         i, j = divmod(index_flat, np.shape(dd)[1])
         assert np.amax(dd) == dd[i, j]  # may fail when nan/infs?
         # with vinograd, np.amax(dd) may be nan if we include the origin.
@@ -151,6 +158,7 @@ def solve(**kwargs):
         data.insert(i + 1, result.y)
 
     reshaped_data = np.einsum("kji", data)
+    assert np.shape(reshaped_data) == (len(t_eval), 2, len(s))
     # reshaped_data is a (time_index, dim_state_space, num_points)-shaped array
 
     #plt.legend()
@@ -158,16 +166,14 @@ def solve(**kwargs):
     s = np.array(s)
     density = 1.0 / np.diff(s)
     r = 0.5 * (s[:-1] + s[1:])
-    ax2.semilogy(r, density, label="required")
-    ax2.semilogy(r_init, target_density, "+")
+
+    ax2.semilogy(r_init, target_density, "_", color="green", alpha=0.5)
 
     r_upsampled = 0.5* (s_upsampled[1:] + s_upsampled[:-1])
-    ax2.semilogy(r_upsampled, density_upsampled * density_increase_upsampled, label="predicted")
-
-    #ax2.semilogy(first[0], first[1]/max(first[1])*max(density), "--")
-    #ax2.set_ylim(0.0, 1.1 * max(density))
+    ax2.semilogy(r_upsampled, density_upsampled * density_increase_upsampled, color="green", label="initially predicted", alpha=0.5)
+    ax2.semilogy(r, density, color="orange", label="required (effective)")
     ax2.legend()
-    #plt.show()
+    plt.show()
 
     return reshaped_data
 

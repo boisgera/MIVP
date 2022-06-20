@@ -72,13 +72,14 @@ atol = 1e-15  # default: 1e-6
 # ------------------------------------------------------------------------------
 data = mivp.solve(
     fun=fun,
-    t_eval=t,
+    t_span=t_span,
     boundary=boundary,
-    boundary_rtol=0.0,
-    boundary_atol=0.01,
+    method="LSODA",
+    t_eval=t,
     rtol=rtol,
     atol=atol,
-    method="LSODA",
+    boundary_rtol=0.0,
+    boundary_atol=0.01,
 )
 
 mivp.generate_movie(data, filename="lk.mp4", fps=df)
