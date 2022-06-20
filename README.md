@@ -1,58 +1,10 @@
 # ODE flow & sets of initial values
 
-<!--
-<div style="display:flex;gap:1em;flex: 0 1 auto;">
-<div style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;">
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/movie.png">
-</img>
-</a>
-</div>
-<div style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;">
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/lk.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/lk.png">
-</img>
-</a>
-</div>
-<div style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;">
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/vinograd.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/vinograd.png">
-</img>
-</a>
-</div>
-</div>
--->
+https://user-images.githubusercontent.com/1217694/174569336-599366e2-18b4-467e-bcec-40bda11d966a.mp4
 
-https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/movie.mp4
+https://user-images.githubusercontent.com/1217694/174568980-8ebd31f5-6cf1-4359-82e0-61d8a6a37d02.mp4
 
-https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/lk.mp4
-
-https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/vinograd.mp4
-
-
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/movie.png"
-style="width:100%">
-</img>
-</a>
-
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/lk.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/lk.png"
-style="width:100%">
-</img>
-</a>
-
-<a href="https://github.com/boisgera/MIVP/raw/gh-pages/vinograd.mp4">
-<img
-src="https://github.com/boisgera/MIVP/raw/gh-pages/images/vinograd.png"
-style="width:100%">
-</img>
-</a>
+https://user-images.githubusercontent.com/1217694/174569344-3081bebc-68b3-47a2-9682-cb9a0658a8d7.mp4
 
 ```python
 # Third-Party Libraries
