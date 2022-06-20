@@ -3,6 +3,7 @@
 $$
 \dot{x} = \alpha x - \beta x y, \dot{y} = \delta x y -\gamma y
 $$
+
 with $\alpha = 2 / 3, $\beta = 4 / 3$, $\delta =1$,  $\gamma = 1.0$
 
 
