@@ -1,7 +1,7 @@
 # ODE flow & sets of initial values
 
 $$ \dot{x} = \alpha x - \beta x y, \dot{y} = \delta x y -\gamma y $$
-with $\alpha = 2 / 3$, $\beta = 4 / 3$, $\delta =1$,  $\gamma = 1.0$.
+with $\alpha = 2 // 3$, $\beta = 4 / 3$, $\delta =1$,  $\gamma = 1.0$.
 
 
 https://user-images.githubusercontent.com/1217694/174568980-8ebd31f5-6cf1-4359-82e0-61d8a6a37d02.mp4
