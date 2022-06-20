@@ -1,6 +1,7 @@
 # ODE flow & sets of initial values
 
-[Lotka-Volterra system](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations):
+Flow of the [Lotka-Volterra system](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations),
+governed by
 
 $$ 
 \begin{array}{lll}
@@ -9,8 +10,7 @@ $$
 \end{array}
 $$
 
-
-with $\alpha = 2 /3, \beta = 4 / 3, \delta =1, \gamma = 1.0$.
+Here with $\alpha = 2 /3, \beta = 4 / 3, \delta =1, \gamma = 1.0$.
 
 
 https://user-images.githubusercontent.com/1217694/174568980-8ebd31f5-6cf1-4359-82e0-61d8a6a37d02.mp4
