@@ -1,6 +1,15 @@
 # ODE flow & sets of initial values
 
-$$ \dot{x} = \alpha x - \beta x y, \dot{y} = \delta x y -\gamma y $$
+[Lotka-Volterra system](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations):
+
+$$ 
+\begin{array}{lll}
+\dot{x} &=& \alpha x - \beta x y 
+\dot{y} &=& \delta x y -\gamma y
+\end{array}
+$$
+
+
 with $\alpha = 2 /3, \beta = 4 / 3, \delta =1, \gamma = 1.0$.
 
 
