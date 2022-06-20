@@ -4,7 +4,7 @@ Flow of the [Lotka-Volterra system](https://en.wikipedia.org/wiki/Lotka%E2%80%93
 governed by
 
 $$ 
-\begin{array}{lll}
+\begin{array}{rcl}
 \dot{x} &=& \alpha x - \beta x y \\
 \dot{y} &=& \delta x y -\gamma y
 \end{array}
@@ -14,6 +14,19 @@ Here with $\alpha = 2 /3, \beta = 4 / 3, \delta =1, \gamma = 1.0$.
 
 
 https://user-images.githubusercontent.com/1217694/174568980-8ebd31f5-6cf1-4359-82e0-61d8a6a37d02.mp4
+
+
+--------------------------------------------------------------------------------
+
+Flow of the [Vinograd system](http://www.mathnet.ru/php/getFT.phtml?jrnid=dan&paperid=21930&what=fullt&option_lang=eng), governed by
+
+$$
+\begin{array}{rcl}
+\dot{x} = (x^2 * (y - x) + y^5) / q(x, y)
+\dot{y} = y^2 * (y - 2 * x) / q(x, y)
+\end{array}
+with q(x, y) = x^2 + y^2 + (1 + (x^2 + y^2)^2)
+$$
 
 https://user-images.githubusercontent.com/1217694/174569344-3081bebc-68b3-47a2-9682-cb9a0658a8d7.mp4
 
