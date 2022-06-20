@@ -1,5 +1,7 @@
 # ODE flow & sets of initial values
 
+## Lotka-Volterra
+
 Flow of the [Lotka-Volterra system](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations),
 governed by
 
@@ -81,6 +83,8 @@ data = mivp.solve(
 
 mivp.generate_movie(data, filename="lk.mp4", fps=df)
 ```
+
+## Vinograd
 
 
 Flow of the [Vinograd system](http://www.mathnet.ru/php/getFT.phtml?jrnid=dan&paperid=21930&what=fullt&option_lang=eng), governed by
