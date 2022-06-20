@@ -25,7 +25,7 @@ $$
 \dot{x} &=& (x^2 (y - x) + y^5) / q(x, y) \\
 \dot{y} &=& y^2 (y - 2 x) / q(x, y)
 \end{array}
-\mbox{ with } 
+\; \mbox{ with } \;
 q(x, y) = x^2 + y^2 + (1 + (x^2 + y^2)^2)
 $$
 
