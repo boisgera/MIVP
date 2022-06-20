@@ -35,10 +35,13 @@ import tqdm
 #       Well, this is complex. Start with 1D only, then maybe 2D dims,
 #       and simplest topologies (lines, rect patch), then see what can
 #       be done afterwards.
+#       Short-term : 1D (boundary of 2D), with start point = end point
+
 
 
 # TODO: multiple boundaries management is not pretty, solve this issue.
 #       maybe regress the API.
+#       Yes; go back to simple boundary ATM.
 
 # TODO: tqdm & asymptotics (convergence speed in theory & practice ?)
 
@@ -164,13 +167,12 @@ def solve(**kwargs):
     #ax2.semilogy(first[0], first[1]/max(first[1])*max(density), "--")
     #ax2.set_ylim(0.0, 1.1 * max(density))
     ax2.legend()
-    plt.show()
+    #plt.show()
 
     return reshaped_data
 
 
 def generate_movie(data, filename, fps, dpi=300, axes=None, hook=None):
-    return # tmp
     fig = None
     if axes:
         fig = axes.get_figure()

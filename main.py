@@ -74,4 +74,5 @@ data = mivp.solve(
     atol=atol,
     method="LSODA",
 )
+
 mivp.generate_movie(data, filename="main.mp4", fps=df)

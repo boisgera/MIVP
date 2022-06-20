@@ -26,7 +26,12 @@ src="https://github.com/boisgera/MIVP/raw/gh-pages/images/vinograd.png">
 </div>
 -->
 
-https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4
+https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/movie.mp4
+
+https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/lk.mp4
+
+https://raw.githubusercontent.com/boisgera/MIVP/gh-pages/vinograd.mp4
+
 
 <a href="https://github.com/boisgera/MIVP/raw/gh-pages/movie.mp4">
 <img
