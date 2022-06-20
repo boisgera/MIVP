@@ -22,7 +22,7 @@ Flow of the [Vinograd system](http://www.mathnet.ru/php/getFT.phtml?jrnid=dan&pa
 
 $$
 \begin{array}{rcl}
-\dot{x} = (x^2 * (y - x) + y^5) / q(x, y)
+\dot{x} = (x^2 * (y - x) + y^5) / q(x, y) \\
 \dot{y} = y^2 * (y - 2 * x) / q(x, y)
 \end{array}
 with q(x, y) = x^2 + y^2 + (1 + (x^2 + y^2)^2)
