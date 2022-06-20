@@ -4,7 +4,7 @@
 
 $$ 
 \begin{array}{lll}
-\dot{x} &=& \alpha x - \beta x y 
+\dot{x} &=& \alpha x - \beta x y \\
 \dot{y} &=& \delta x y -\gamma y
 \end{array}
 $$
