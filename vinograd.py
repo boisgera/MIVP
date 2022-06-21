@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Python Standard Library
-import time
+pass
 
 # Third-Party Libraries
 import numpy as np
@@ -36,13 +36,16 @@ n = 10
 xc, yc = y0
 
 
-def boundary(t):  # we assume that t is a 1-dim array
-    return np.array(
-        [
-            [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
-            for theta in 2 * np.pi * t
-        ]
-    )
+def vectorize(fun):
+    return np.vectorize(fun, signature="()->(n)")
+
+@vectorize
+def boundary(s):
+    theta = 2 * np.pi * s
+    return np.array([
+        xc + radius * np.cos(theta), 
+        yc + radius * np.sin(theta)
+    ])
 
 
 # Precision
@@ -51,17 +54,16 @@ atol = 1e-12  # default: 1e-6
 
 # ------------------------------------------------------------------------------
 
-t_ = time.time()
 data = mivp.solve(
     fun=fun,
     t_eval=t,
     boundary=boundary,
+    boundary_sampling=4,
     boundary_rtol=0.0,
     boundary_atol=0.05,
     rtol=rtol,
     atol=atol,
     method="LSODA",
 )
-print(time.time() - t_)
 
 mivp.generate_movie(data, filename="vinograd.mp4", fps=df)

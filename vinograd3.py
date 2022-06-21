@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Python Standard Library
-import time
+pass
 
 # Third-Party Libraries
 import numpy as np
@@ -39,7 +39,6 @@ xc, yc = y0
 def vectorize(fun):
     return np.vectorize(fun, signature="()->(n)")
 
-
 @vectorize
 def cube(s):
     if 0 <= s < 0.25:
@@ -60,8 +59,6 @@ rtol = 1e-9  # default: 1e-3
 atol = 1e-12  # default: 1e-6
 
 # ------------------------------------------------------------------------------
-
-t_ = time.time()
 data = mivp.solve(
     fun=fun,
     t_eval=t,
@@ -72,6 +69,5 @@ data = mivp.solve(
     atol=atol,
     method="LSODA",
 )
-print(time.time() - t_)
 
 mivp.generate_movie(data, filename="vinograd3.mp4", fps=df)

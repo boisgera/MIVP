@@ -38,14 +38,16 @@ xc, yc = y0
 #     ]
 # )
 
+def vectorize(fun):
+    return np.vectorize(fun, signature="()->(n)")
 
-def boundary(t):  # we assume that t is a 1-dim array
-    return np.array(
-        [
-            [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
-            for theta in 2 * np.pi * t
-        ]
-    )
+@vectorize
+def boundary(s):
+    theta = 2 * np.pi * s
+    return np.array([
+        xc + radius * np.cos(theta), 
+        yc + radius * np.sin(theta)
+    ])
 
 
 # Precision

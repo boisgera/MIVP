@@ -1,3 +1,7 @@
+
+# Python Standard Library
+import multiprocessing as mp
+
 # Third-Party Libraries
 import numpy as np
 import scipy.integrate as sci
@@ -5,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 import tqdm
 
-# TODO: branding: something using "ink" (I see ink that spreads). 
+# TODO: branding: something using "ink" (I see ink that spreads).
 #       inkblot is still available in Pypi. Inkflow too, etc.
 
 # TODO: measure the error from last to first too (boundary is a closed path)
@@ -38,7 +42,6 @@ import tqdm
 #       Short-term : 1D (boundary of 2D), with start point = end point
 
 
-
 # TODO: multiple boundaries management is not pretty, solve this issue.
 #       maybe regress the API.
 #       Yes; go back to simple boundary ATM.
@@ -62,118 +65,142 @@ import tqdm
 #       snapshot with shadow, "vignettes" (multiple snapshots), 3D graph
 #       (time along z), etc.
 
-MARGIN = 5 # (percentage)
-N = 50    # Initial number of boundary points
+# TODO: ATM we are t_eval-based. Shall we support dense output two and how?
+#       We do not pretend that we have a "result" structure anymore now,
+#       so I am not sure ...
+
+# TODO: investigate proper form for boundaries that work as expected with scalar
+#       and vector inputs (not as simple as applying a numpy.vectorize decorator)
+#       ATM we require only a scalar form that works and manually vectorize the
+#       stuff.
 
 def solve(**kwargs):
     # Arguments Handling
     kwargs = kwargs.copy()
-    boundary = kwargs["boundary"]
-    del kwargs["boundary"]
-    boundary_atol = kwargs.get("boundary_atol", 0.01)
-    del kwargs["boundary_atol"]
-    boundary_rtol = kwargs.get("boundary_rtol", 0.0)
-    del kwargs["boundary_rtol"]
+
+    # Get t_eval (mandatory), infer t_span if needed
     try:
         t_eval = kwargs["t_eval"]
     except KeyError:
         raise TypeError("t_eval argument is mandatory")
-    kwargs["t_span"] = kwargs.get("t_span") or (t_eval[0], t_eval[-1])
+    kwargs.setdefault("t_span", (t_eval[0], t_eval[-1]))
+
+    # Parameters specific to mivp: pick them & clean-up kwargs afterwards.
+    boundary = kwargs["boundary"]
+    del kwargs["boundary"]
+    boundary_atol = kwargs.get("boundary_atol", 0.01)
+    try:
+        del kwargs["boundary_atol"]
+    except KeyError:
+        pass
+    boundary_rtol = kwargs.get("boundary_rtol", 0.0)
+    try:
+        del kwargs["boundary_rtol"]
+    except KeyError:
+        pass
+    # 🚧 TODO: enforce boundary_sampling >= 3 via a ValueError
+    boundary_sampling = kwargs.get("boundary_sampling", 3)
+    try:
+        del kwargs["boundary_sampling"]
+    except KeyError:
+        pass
+    upsampling_margin = kwargs.get("upsampling_margin", 0.10)  # i.e. 10%
+    try:
+        del kwargs["upsampling_margin"]
+    except KeyError:
+        pass
 
     # Compute the trajectories for the initial boundary sampling
-    target_density = None  
-    s = list(np.linspace(0.0, 1.0, N, endpoint=True))
-    data = [np.zeros((2, len(t_eval)), dtype=np.float64) for _ in range(N)]
-    assert np.shape(data) == (len(s), 2, len(t_eval))
-    y0s = boundary(np.array(s))
+    s = list(np.linspace(0.0, 1.0, boundary_sampling, endpoint=True))
+    assert len(s) == boundary_sampling
+    y0s = [boundary(s_) for s_ in s]
+
+    data = []
     for i, y0 in enumerate(y0s):
         kwargs["y0"] = y0
         result = sci.solve_ivp(**kwargs)
-        data[i] = result.y
+        data.append(result.y)
+    assert np.shape(data) == (len(s), 2, len(t_eval))
 
-    _, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
-    ax1.set_xlim(0.0, 1.0)
-    ax1.set_title("Spatial distance between points: effective / max admissible")
-    ax2.set_xlim(0.0, 1.0)
-    ax2.set_title("Final points density")
-
-
-    c = 0
     while True:
         data_array = np.array(data)
         x, y = data_array[:, 0], data_array[:, 1]
         assert np.shape(x) == (len(s), len(t_eval))
         assert np.shape(y) == (len(s), len(t_eval))
-        v = np.sqrt(x * x + y * y) 
-        d = 0.5 * (v[:-1] + v[1:]) 
-        threshold = boundary_atol + boundary_rtol * d 
-        assert np.shape(threshold) == (len(s)-1, len(t_eval))
+        v = np.sqrt(x * x + y * y)
+        d = 0.5 * (v[:-1] + v[1:])
+        threshold = boundary_atol + boundary_rtol * d
+        assert np.shape(threshold) == (len(s) - 1, len(t_eval))
         dxdy = np.diff(data, axis=0)
-        assert np.shape(dxdy) == (len(s)-1, 2, len(t_eval))
+        assert np.shape(dxdy) == (len(s) - 1, 2, len(t_eval))
         dx, dy = dxdy[:, 0], dxdy[:, 1]
         dd = np.sqrt(dx * dx + dy * dy)
-        assert np.shape(dd) == (len(s)-1, len(t_eval))
+        assert np.shape(dd) == (len(s) - 1, len(t_eval))
         r = 0.5 * (np.array(s[:-1]) + np.array(s[1:]))
-        options = {"color": "k", "alpha": 0.01} if c!=0 else {}
-        ax1.plot(r, np.amax(dd / threshold, axis=1), label=str(c), **options)
-        if c == 0:
-            density_init = 1 / np.diff(s)
-            r_init = r.copy()
-            density_increase = np.amax(dd / threshold, axis=1) 
-            target_density = density_increase * density_init
+        r_init = r.copy()
 
-            # Upsampling (power of two)
-            power = np.ceil(np.log2(density_increase * (1.0 + MARGIN/100.0))).astype(np.int64)
-            power = np.maximum(0, power)
-            density_increase_rounded_up = (2**power).astype(np.int64)
-            s_upsampled = []
-            density_increase_upsampled = []
-            density_upsampled = []
-            for i, s_ in enumerate(s[:-1]):
-                s_next = s[i+1]
-                s_upsampled.extend(np.linspace(s_, s_next, density_increase_rounded_up[i]))
-                z = density_increase_rounded_up[i]
-                density_increase_upsampled.extend([z] * z)
-                density_upsampled.extend([density_init[i]] * z)
-            s_upsampled.append(s_)
-            s_upsampled = np.array(s_upsampled)
-            density_upsampled = np.array(density_upsampled)
-            density_increase_upsampled = np.array(density_increase_upsampled)
-
-        c+=1
-
-        if np.all(dd <= threshold):
+        if np.all(dd <= threshold):  # 👍
             break
-        index_flat = np.argmax(dd / threshold)
-        i, j = divmod(index_flat, np.shape(dd)[1])
-        assert np.amax(dd) == dd[i, j]  # may fail when nan/infs?
-        # with vinograd, np.amax(dd) may be nan if we include the origin.
-        # Investigate !
-        print(f"{len(data)=} {(i, j)=}", f"{np.amax(dd)=}")
+        density_init = 1 / np.diff(s)
+        density_increase_factor = np.amax(dd / threshold, axis=1)
 
-        s.insert(i + 1, 0.5 * (s[i] + s[i + 1]))
-        y0 = boundary(np.array([s[i + 1]]))[0]
-        kwargs["y0"] = y0
-        result = sci.solve_ivp(**kwargs)
-        data.insert(i + 1, result.y)
+        # 🥼 Linear (integer) upsampling
+        #print(f"{density_increase_factor =}")
+        density_increase_factor *= 1.0 + upsampling_margin
+        density_increase_factor_rounded_up = np.ceil(density_increase_factor).astype(np.int64)
+        density_increase_factor = np.maximum(density_increase_factor, 1)
+        #print(f"{density_increase_factor_rounded_up =}")
+
+        s_upsampled = []
+        density_increase_factor_upsampled = []
+        density_upsampled = []
+        for i, s_ in enumerate(s[:-1]):
+            s_next = s[i + 1]
+            #print(f"{len(np.linspace(s_, s_next, density_increase_factor_rounded_up[i]))}")
+            s_upsampled.extend(
+                np.linspace(s_, s_next, density_increase_factor_rounded_up[i], endpoint=False)
+            )
+            z = density_increase_factor_rounded_up[i]
+            density_increase_factor_upsampled.extend([z] * z)
+            density_upsampled.extend([density_init[i]] * z)
+        s_upsampled.append(1.0)
+        s_upsampled = np.array(s_upsampled)
+        density_upsampled = np.array(density_upsampled)
+        density_increase_factor_upsampled = np.array(density_increase_factor_upsampled)
+        assert len(s_upsampled) == len(density_upsampled) +1
+
+        
+        # 🚧 🧠 try/adapt for multi-processing & benchmark
+        for i, s_ in enumerate(s_upsampled):
+            if s_ not in s: # ⚠️ avoid useless recomputations
+                kwargs["y0"] = boundary(s_)
+                data.insert(i, sci.solve_ivp(**kwargs).y)
+
+        s = s_upsampled
 
     reshaped_data = np.einsum("kji", data)
     assert np.shape(reshaped_data) == (len(t_eval), 2, len(s))
     # reshaped_data is a (time_index, dim_state_space, num_points)-shaped array
 
-    #plt.legend()
-
-    s = np.array(s)
-    density = 1.0 / np.diff(s)
-    r = 0.5 * (s[:-1] + s[1:])
-
-    ax2.semilogy(r_init, target_density, "_", color="green", alpha=0.5)
-
-    r_upsampled = 0.5* (s_upsampled[1:] + s_upsampled[:-1])
-    ax2.semilogy(r_upsampled, density_upsampled * density_increase_upsampled, color="green", label="initially predicted", alpha=0.5)
-    ax2.semilogy(r, density, color="orange", label="required (effective)")
-    ax2.legend()
-    plt.show()
+    # 📈 Density Graph
+    # --------------------------------------------------------------------------
+    if False:
+        _, ax1 = plt.subplots(nrows=1)#, sharex=True)
+        ax1.set_xlim(0.0, 1.0)
+        s = np.array(s)
+        density = 1.0 / np.diff(s)
+        #r = 0.5 * (s[:-1] + s[1:])
+        ss = []
+        for s_ in s:
+            ss.extend([s_, s_])
+        ss = ss[1:-1]
+        dd = []
+        for d in density:
+            dd.extend([d, d])
+        
+        ax1.semilogy(ss, dd, color="orange", label="density")
+        ax1.legend()
+        plt.show()
 
     return reshaped_data
 
@@ -225,6 +252,7 @@ def generate_movie(data, filename, fps, dpi=300, axes=None, hook=None):
         x = data[i][0]
         y = data[i][1]
         polygon = axes.fill(x, y, color="k", zorder=1000)[0]
+        #polygon = axes.plot(x, y, "k.")
 
         if hook:
             hook(i, axes)
@@ -232,5 +260,7 @@ def generate_movie(data, filename, fps, dpi=300, axes=None, hook=None):
     writer = ani.FFMpegWriter(fps=fps)
     animation = ani.FuncAnimation(fig, func=update, frames=len(data))
     bar = tqdm.tqdm(total=len(data))
-    animation.save(filename, writer=writer, dpi=dpi, progress_callback=lambda i, n: bar.update(1))
+    animation.save(
+        filename, writer=writer, dpi=dpi, progress_callback=lambda i, n: bar.update(1)
+    )
     bar.close()

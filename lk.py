@@ -43,13 +43,16 @@ xc, yc = y0
 # )
 
 
-def boundary(t):  # we assume that t is a 1-dim array
-    return np.array(
-        [
-            [xc + radius * np.cos(theta), yc + radius * np.sin(theta)]
-            for theta in 2 * np.pi * t
-        ]
-    )
+def vectorize(fun):
+    return np.vectorize(fun, signature="()->(n)")
+
+@vectorize
+def boundary(s):
+    theta = 2 * np.pi * s
+    return np.array([
+        xc + radius * np.cos(theta), 
+        yc + radius * np.sin(theta)
+    ])
 
 
 # Precision
@@ -72,6 +75,7 @@ data = mivp.solve(
     fun=fun,
     t_eval=t,
     boundary=boundary,
+    boundary_sampling=3,
     boundary_rtol=0.0,
     boundary_atol=0.01,
     rtol=rtol,
