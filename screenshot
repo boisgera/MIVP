@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+mkdir -p images
+ffmpeg -y -ss 00:01 -i movie.mp4 -frames:v 1 images/movie.png
+ffmpeg -y -ss 00:10 -i lk.mp4 -frames:v 1 images/lk.png
+ffmpeg -y -ss 00:05 -i lk.mp4 -frames:v 1 images/vinograd.png
