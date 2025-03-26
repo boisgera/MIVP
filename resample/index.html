@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vinograd System Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.6.0/dist/math.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/odex@2.0.4/odex.min.js"></script>
+</head>
+<body>
+    <canvas id="myChart" width="800" height="800"></canvas>
+    <script>
+        // Configuration
+        const n = 100;
+        const tfs = math.range(0, 10, 0.1).toArray();
+        
+        // Initialize the chart
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: []
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'center'
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'center'
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                maintainAspectRatio: true
+            }
+        });
+        
+        // Vinograd system
+        function fun(t, xy) {
+            const [x, y] = xy;
+            const q = x*x + y*y * (1 + math.pow(x*x + y*y, 2));
+            const dx = (x*x * (y - x) + math.pow(y, 5)) / q;
+            const dy = y*y * (y - 2*x) / q;
+            return [dx, dy];
+        }
+        
+        // Numerical integration (forward)
+        function forward(fun, tSpan, y0, options = {}) {
+            const solver = new Odex({
+                tol: options.tol || 1e-6,
+                maxStep: options.maxStep || 0.1
+            });
+            
+            const yf = math.zeros(y0.length, 2)._data;
+            const tf = tSpan[1];
+            
+            for (let i = 0; i < y0.length; i++) {
+                const solution = solver.solve(fun, tSpan, y0[i]);
+                yf[i] = solution(tf);
+            }
+            
+            return yf;
+        }
+        
+        // Resample with adaptive density
+        function resample(xy) {
+            const n = xy.length;
+            const t = math.range(0, 1, 1/n).toArray();
+            const x = xy.map(p => p[0]);
+            const y = xy.map(p => p[1]);
+            
+            // Numerical differentiation (gradient)
+            function gradient(arr, t) {
+                const grad = new Array(arr.length);
+                grad[0] = (arr[1] - arr[0]) / (t[1] - t[0]);
+                grad[arr.length-1] = (arr[arr.length-1] - arr[arr.length-2]) / (t[arr.length-1] - t[arr.length-2]);
+                
+                for (let i = 1; i < arr.length-1; i++) {
+                    grad[i] = (arr[i+1] - arr[i-1]) / (t[i+1] - t[i-1]);
+                }
+                return grad;
+            }
+            
+            const dx = gradient(x, t);
+            const dy = gradient(y, t);
+            const d2x = gradient(dx, t);
+            const d2y = gradient(dy, t);
+            
+            const ds2 = dx.map((val, i) => val*val + dy[i]*dy[i]);
+            const ds = ds2.map(val => Math.sqrt(val));
+            
+            // Curvature
+            const _c = dx.map((val, i) => Math.abs(val * d2y[i] - dy[i] * d2x[i]) / Math.pow(ds[i], 3));
+            
+            // Adaptive sampling density
+            const density = ds; // Could use curvature here as in Python code
+            const cumDensity = density.reduce((acc, val) => {
+                acc.push((acc.length > 0 ? acc[acc.length-1] : 0) + val);
+                return acc;
+            }, []);
+            const totalDensity = cumDensity[cumDensity.length-1];
+            const normalizedDensity = cumDensity.map(val => val / totalDensity);
+            
+            // Cubic spline interpolation (simplified version)
+            function cubicSpline(points, tNew) {
+                // This is a simplified version - for a proper implementation consider using a library
+                const result = [];
+                for (let i = 0; i < tNew.length; i++) {
+                    const idx = Math.min(Math.floor(tNew[i] * (n-1)), n-2);
+                    const frac = tNew[i] * (n-1) - idx;
+                    result.push([
+                        points[idx][0] * (1-frac) + points[idx+1][0] * frac,
+                        points[idx][1] * (1-frac) + points[idx+1][1] * frac
+                    ]);
+                }
+                return result;
+            }
+            
+            const tNew = t.map((val, i) => {
+                const target = normalizedDensity[i];
+                // Find where target would fit in normalizedDensity
+                for (let j = 0; j < normalizedDensity.length; j++) {
+                    if (normalizedDensity[j] >= target) {
+                        if (j === 0) return t[0];
+                        const frac = (target - normalizedDensity[j-1]) / (normalizedDensity[j] - normalizedDensity[j-1]);
+                        return t[j-1] + frac * (t[j] - t[j-1]);
+                    }
+                }
+                return t[t.length-1];
+            });
+            
+            const xyNew = cubicSpline(xy, tNew);
+            return xyNew;
+        }
+        
+        // Initial conditions (circle)
+        let t = math.range(0, 1, 1/n).toArray();
+        let x0 = t.map(val => Math.cos(2 * Math.PI * val));
+        let y0 = t.map(val => Math.sin(2 * Math.PI * val));
+        // Ensure periodicity
+        x0[x0.length-1] = x0[0];
+        y0[y0.length-1] = y0[0];
+        
+        let xy = x0.map((val, i) => [val, y0[i]]);
+        
+        // Animation loop
+        let tfPrev = tfs[0];
+        let animationStep = 0;
+        
+        function animate() {
+            if (animationStep >= tfs.length-1) return;
+            
+            const tf = tfs[animationStep+1];
+            
+            // Process in small batches for smoother animation
+            const batchSize = 5;
+            for (let i = 0; i < batchSize && animationStep < tfs.length-1; i++) {
+                xy = forward(fun, [tfPrev, tf], xy);
+                xy = resample(xy);
+                tfPrev = tf;
+                animationStep++;
+            }
+            
+            // Update chart
+            const alpha = (tf - tfs[0]) / (tfs[tfs.length-1] - tfs[0]);
+            const color = `rgba(0, 119, 204, ${alpha})`;
+            
+            chart.data.datasets.push({
+                label: `Step ${animationStep}`,
+                data: xy.map(point => ({x: point[0], y: point[1]})),
+                showLine: true,
+                borderColor: color,
+                backgroundColor: color,
+                borderWidth: 1,
+                pointRadius: 0
+            });
+            
+            chart.update();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

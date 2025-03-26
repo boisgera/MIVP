@@ -8,3 +8,6 @@ __pycache__
 
 # Temporary
 tmp
+# pixi environments
+.pixi
+*.egg-info

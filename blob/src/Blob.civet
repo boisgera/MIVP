@@ -1,0 +1,84 @@
+"civet autoLet react"
+// @ts-nocheck
+import { useRef } from "react"
+import { useFrame } from "@react-three/fiber"
+import * as THREE from "three"
+
+// TODO: replicate (part of) the features of Shape Geometry but in a Buffer
+//       geometry, so that we can animate the vertices of the shape properly.
+//       The main thing to do is to tesselate the shape into triangles
+//       but some earcut algorithm is already implemented in THREE.js 
+//       somewhere.
+
+circle := (t) => 
+  [Math.cos(2 * Math.PI * t), Math.sin(2 * Math.PI * t)]
+
+linspace := (start, stop, num = 50, endpoint = true) =>
+  step := (stop - start) / (endpoint ? (num - 1) : num);  
+  result := 
+    for i = 0; i < num; i++
+      start + (step * i)  
+  if endpoint // make sure the last value is exactly `stop`
+    result[num - 1] = stop
+  result
+
+export default Blob := ({ color = "hotpink"}) =>
+  geometryRef := useRef null
+  positionRef := useRef null
+  verticesRef := useRef 
+    new Float32Array [
+      -1, -1, 0,  
+      +1, -1, 0, 
+       0, +1, 0
+    ]
+
+  useFrame (state, delta) =>
+    dt := delta
+    vertices := verticesRef.current
+    for i=0; i < vertices.length; i++
+      vertices[i] += 0.1 * (Math.random() - 0.5)
+    console.log vertices // updated, but not reflected in the mesh
+    positionRef?.current.needsUpdate = true
+
+  <mesh>
+    <bufferGeometry ref={geometryRef}>
+      <bufferAttribute
+        ref={positionRef}
+        attach="attributes-position"
+        array={verticesRef.current}
+        itemSize={3}
+        count={verticesRef.current.length / 3}
+      >
+    <meshStandardMaterial emissive={color}>
+
+ZBlob := ({ shape = circle, n = 10, color = "hotpink" }) =>
+  x := new Float64Array(n)
+  y := new Float64Array(n)
+  ts = linspace(0.0, 1.0, n)
+  for i=0; i < n; i++
+    [x[i], y[i]] = shape(ts[i])
+
+  xyRef := useRef [x, y]
+
+  getShape := =>
+    [x_, y_] = xyRef.current
+    new THREE.Shape 
+      for let i=0; i < x_.length; i++
+        new THREE.Vector2(x_[i], y_[i])
+
+  meshRef := useRef null
+
+  // Add a small rotation animation
+  useFrame (state, delta) =>
+    T := 10.0 // period in seconds
+    dt := delta
+    [x, y] := xyRef.current
+    for let i=0; i < n; i++
+      x[i] += 0.1 * (Math.random() - 0.5)
+      y[i] += 0.1 * (Math.random() - 0.5)
+    console.log x, y // updated, but not reflected in the mesh    
+    meshRef.current.rotation.z += 2 * Math.PI * dt / T
+
+  <mesh ref={meshRef}>
+    <shapeGeometry args={[getShape()]} />
+    <meshStandardMaterial emissive={color} />

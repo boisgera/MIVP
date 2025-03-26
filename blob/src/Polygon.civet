@@ -1,0 +1,30 @@
+"civet autoLet react"
+// @ts-nocheck
+import { useRef } from "react"
+import { useFrame } from "@react-three/fiber"
+import * as THREE from "three"
+
+export default Polygon := ({ sides = 5, color = "hotpink" }) =>
+  meshRef := useRef null
+  
+  // Create the polygon shape
+  shape = new THREE.Shape()
+  radius = 1
+  angle = (2 * Math.PI) / sides
+  shape.moveTo
+    radius * Math.cos(0)
+    radius * Math.sin(0)
+  for i = 1; i <= sides; i++
+    shape.lineTo
+      radius * Math.cos(angle * i),
+      radius * Math.sin(angle * i)
+  
+  // Add a small rotation animation
+  useFrame (state, delta) =>
+    T := 10.0 // period in seconds
+    dt := delta
+    meshRef.current.rotation.z += 2 * Math.PI * dt / T
+
+  <mesh ref={meshRef}>
+    <shapeGeometry args={[shape]} />
+    <meshStandardMaterial emissive={color} />
